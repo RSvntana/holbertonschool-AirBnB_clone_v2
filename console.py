@@ -1,7 +1,11 @@
 #!/usr/bin/python3
 """ Console Module """
 import cmd
+import re
+import os
 import sys
+import uuid
+from datetime import datetime
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.user import User
@@ -115,38 +119,68 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """ Create an object of any class"""
-        if not args:
+        all_attr = ('id', 'created_at', 'updated_at', '__class__')
+        class_name = ''
+        class_pat = r'(?P<name>(?:[a-zA-Z]|_)(?:[a-zA-Z]|\d|_)*)'
+        class_match = re.match(class_pat, args)
+        objects = {}
+        # find the right Command syntax
+        if class_match is not None:
+            class_name = class_match.group('name')
+            str_param = args[len(class_name):].strip()
+            params = str_param.split(' ')
+            str_pat = r'(?P<t_str>"([^"]|\")*")'
+            fp_pat = r'(?P<t_float>[-+]?\d+\.\d+)'
+            int_pat = r'(?P<t_int>[-+]?\d+)'
+            full_pat = '{}=({}|{}|{})'.format(class_pat, str_pat,
+                                              fp_pat, int_pat)
+            # check syntax of key and value pairs
+            for param in params:
+                param_match = re.fullmatch(full_pat, param)
+                if param_match is not None:
+                    key = param_match.group('name')
+                    str_value = param_match.group('t_str')
+                    fp_value = param_match.group('t_float')
+                    int_value = param_match.group('t_int')
+                    # address the string value syntax
+                    if str_value is not None:
+                        objects[key] = str_value[1:-1].replace('_', ' ')
+                    # address the floating point value syntax
+                    if fp_value is not None:
+                        objects[key] = float(fp_value)
+                    # address the integer value syntax
+                    if int_value is not None:
+                        objects[key] = int(int_value)
+        else:
+            class_name = args
+        if not class_name:
             print("** class name missing **")
             return
-
-        args_list = args.split()
-        class_name = args_list[0]
-
-        if class_name not in HBNBCommand.classes:
+        elif class_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
+        # save parsed objects using mysqldb'
+        if os.getenv("HBNB_TYPE_STORAGE") == 'db':
+            if not hasattr(objects, 'id'):
+                objects['id'] = str(uuid.uuid4())
 
-        params = {}
-        for arg in args_list[1:]:
-            if '=' not in arg:
-                print(f"Skipping unrecognized parameter: {arg}")
-                continue
+            if not hasattr(objects, 'created_at'):
+                objects['created_at'] = str(datetime.now())
 
-            key, value = arg.split('=', 1)
-            if value.startswitch('"') and value.endswitch(' '):
-                value = value[1:-1].replace('_', ' ')
-                value = value.replace('\\"', '"')
-            elif '.' in value:
-                try:
-                    value = float(value)
-                except ValueError:
-                    print(f"Skipping unrecognized parameter value: {value}")
-                    continue
-                params[key] = value
-        new_instance = HBNBCommand.classes[args]()
-        storage.save()
-        print(new_instance.id)
-        storage.save()
+            if not hasattr(objects, 'updated_at'):
+                objects['updated_at'] = str(datetime.now())
+            # save to db storage
+            new_attr = HBNBCommand.classes[class_name](**objects)
+            new_attr.save()
+            print(new_attr.id)
+        else:
+            # save to filestorage
+            new_attr = HBNBCommand.classes[class_name]()
+            for key, value in objects.items():
+                if key not in all_attr:
+                    setattr(new_attr, key, value)
+            new_attr.save()
+            print(new_attr.id)
 
     def help_create(self):
         """ Help information for the create method """
