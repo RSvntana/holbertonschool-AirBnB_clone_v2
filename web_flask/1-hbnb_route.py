@@ -1,38 +1,29 @@
-<<<<<<< HEAD
 #!/usr/bin/python3
+""" This module starts a Flask web application """""
 from flask import Flask
-
+""" Flask class and render_template method"""""
 app = Flask(__name__)
+app.url_map.strict_slashes = False
+
+""" App route section
+    Add a second route /hbnb:
+    display â€œHBNBâ€"""""
 
 
-@app.route('/', strict_slashes=False)
-def hello_hbnb():
+@app.route('/')
+def hello():
     return 'Hello HBNB!'
 
 
-@app.route('/hbnb', strict_slashes=False)
+@app.route('/hbnb')
 def hbnb():
     return 'HBNB'
 
 
+@app.route('/c/<text>')
+def c(text):
+    return f"C {text.replace('_', ' ')}"
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-=======
-#!/usr/bin/python
-
-from flask import Flask
-
-app = Flask(__name__)
-
-@app.route("/", strict_slashes=False)
-
-def hello():
-    return('Hello HBNB!') 
-
-@app.route("/hbnb", strict_slashes=False)
-def hbnb():
-    return("HBNB")
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000) 
->>>>>>> 7dec229b36a7573e937c1263a1aa885475f2649f

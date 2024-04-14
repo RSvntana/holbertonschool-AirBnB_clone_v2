@@ -1,36 +1,50 @@
 #!/usr/bin/python3
-from flask import Flask, render_template
-
+""" This module starts a Flask web application """""
+from flask import Flask
+from flask import render_template
+""" Flask class and render_template method"""""
 app = Flask(__name__)
+app.url_map.strict_slashes = False
+
+""" App route section
+    Add a second route /hbnb:
+    display â€œHBNBâ€
+
+    Add a third route /c/<text>:
+    display â€œC â€ followed by the value of the text variable
+    (replace underscore _ symbols with a space ) "
+
+    Add a fourth route /python/(<text>):
+    display â€œPython â€, followed by the value of the text variable"""""
 
 
-@app.route('/', strict_slashes=False)
-def hello_hbnb():
+@app.route('/')
+def hello():
     return 'Hello HBNB!'
 
 
-@app.route('/hbnb', strict_slashes=False)
+@app.route('/hbnb')
 def hbnb():
     return 'HBNB'
 
 
-@app.route('/c/<text>', strict_slashes=False)
-def c_text(text):
-    return 'C ' + text.replace('_', ' ')
+@app.route('/c/<text>')
+def c(text):
+    return f"C {text.replace('_', ' ')}"
 
 
-@app.route('/python/', strict_slashes=False)
-@app.route('/python/<text>', strict_slashes=False)
-def python_text(text='is cool'):
-    return 'Python ' + text.replace('_', ' ')
+@app.route('/python', defaults={'text': 'is cool'})
+@app.route('/python/<text>')
+def python(text='is cool'):
+    return f"Python {text.replace('_', ' ')}"
 
 
-@app.route('/number/<int:n>', strict_slashes=False)
+@app.route('/number/<int:n>')
 def number(n):
-    return '{} is a number'.format(n)
+    return f"{n} is a number"
 
 
-@app.route('/number_template/<int:n>', strict_slashes=False)
+@app.route('/number_template/<int:n>')
 def number_template(n):
     return render_template('5-number.html', n=n)
 

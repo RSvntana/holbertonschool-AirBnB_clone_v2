@@ -1,44 +1,47 @@
-#!/usr/bin/python
-
-from flask import Flask, abort
-
+#!/usr/bin/python3
+""" This module starts a Flask web application """""
+from flask import Flask
+""" Flask class and render_template method"""""
 app = Flask(__name__)
+app.url_map.strict_slashes = False
 
-@app.route("/", strict_slashes=False)
+""" App route section
+    Add a second route /hbnb:
+    display â€œHBNBâ€
+
+    Add a third route /c/<text>:
+    display â€œC â€ followed by the value of the text variable
+    (replace underscore _ symbols with a space ) "
+
+    Add a fourth route /python/(<text>):
+    display â€œPython â€, followed by the value of the text variable"""""
+
+
+@app.route('/')
 def hello():
-    return('Hello HBNB!') 
+    return 'Hello HBNB!'
 
 
-@app.route("/hbnb", strict_slashes=False)
+@app.route('/hbnb')
 def hbnb():
-    return("HBNB")
+    return 'HBNB'
 
-@app.route("/c/<text>", strict_slashes=False)
-def text(text):
-    text = text.replace("_", " ")
-    return( "C {}".format(text))
 
-@app.route("/python/", defaults={'text': 'is cool'}, strict_slashes=False)
-@app.route("/python/<text>", strict_slashes=False)
-def python_is_fun(text):
-    text = text.replace("_", " ")
-    return("python {}".format(text))
+@app.route('/c/<text>')
+def c(text):
+    return f"C {text.replace('_', ' ')}"
 
-@app.route("/number/<n>", strict_slashes=False)
-def n_is_number(n):
-    if n.isdigit():
-        return("{} is a number".format(n))
-    else:
-        abort(404)
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return("""
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-    <title>404 Not Found</title>
-    <h1>Not Found</h1>
-    <p>The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.</p>
-    """, 404)
+@app.route('/python', defaults={'text': 'is cool'})
+@app.route('/python/<text>')
+def python(text='is cool'):
+    return f"Python {text.replace('_', ' ')}"
 
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+
+@app.route('/number/<int:n>')
+def number(n):
+    return f"{n} is a number"
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
